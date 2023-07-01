@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Random Number Generator</title>
+  <style>
+    /* Stylesheet code... */
+     body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 500px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 50px;
+      box-shadow: 0 2px 50px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    h1 {
+      color: #333333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cccccc;
+      border-radius: 5px;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+
+    input[type="submit"] {
+      background-color: #4CAF50;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #records {
+      margin-top: 20px;
+    }
+
+    #records h2 {
+      text-align: center;
+    }
+
+    #records table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      overflow: auto; /* Added overflow property */
+    }
+
+    #records th,
+    #records td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #cccccc;
+    }
+
+    #success-message {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 18px;
+      opacity: 1;
+      transition: opacity 0.5s ease-in-out;
+      background-color: #4CAF50;
+      color: #ffffff;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Random Number Generator</h1>
+    <form id="numberForm">
+      <label for="username">Username:</label>
+      <input type="text" id="username" required>
+      <label for="minNumber">Minimum Number:</label>
+      <input type="number" id="minNumber" required>
+      <label for="maxNumber">Maximum Number:</label>
+      <input type="number" id="maxNumber" required>
+      <input type="submit" value="Generate Random Number">
+    </form>
+    <div id="result"></div>
+    <div id="records">
+      <h2>Number Records</h2>
+      <table id="recordsTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Minimum Number</th>
+            <th>Maximum Number</th>
+            <th>Generated Number</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <div id="success-message">Successful Mission!</div>
+  </div>
+
+  <script>
+    // Function to extract the username from the URL
+    function getUsernameFromURL() {
+      var url = window.location.href;
+      var parts = url.split('/');
+      return parts[parts.length - 1];
+    }
+
+    // Load existing records from local storage for the given username
+    function loadRecords(username) {
+      // Load records from local storage or use an empty array if no records exist
+      var records = JSON.parse(localStorage.getItem('numberRecords')) || [];
+      var tableBody = document.querySelector('#recordsTable tbody');
+      tableBody.innerHTML = '';
+
+      for (var i = 0; i < records.length; i++) {
+        var record = records[i];
+        if (record.username === username) {
+          var row = document.createElement('tr');
+          var usernameCell = document.createElement('td');
+          var minNumberCell = document.createElement('td');
+          var maxNumberCell = document.createElement('td');
+          var numberCell = document.createElement('td');
+          var dateCell = document.createElement('td');
+          var timeCell = document.createElement('td');
+
+          usernameCell.textContent = record.username;
+          minNumberCell.textContent = record.minNumber;
+          maxNumberCell.textContent = record.maxNumber;
+          numberCell.textContent = record.number;
+          dateCell.textContent = record.date;
+          timeCell.textContent = record.time;
+
+          row.appendChild(usernameCell);
+          row.appendChild(minNumberCell);
+          row.appendChild(maxNumberCell);
+          row.appendChild(numberCell);
+          row.appendChild(dateCell);
+          row.appendChild(timeCell);
+          tableBody.appendChild(row);
+        }
+      }
+    }
+
+    // Save record to local storage
+    function saveRecord(username, minNumber, maxNumber, number, date, time) {
+      var records = JSON.parse(localStorage.getItem('numberRecords')) || [];
+      records.push({
+        username: username,
+        minNumber: minNumber,
+        maxNumber: maxNumber,
+        number: number,
+        date: date,
+        time: time
+      });
+      localStorage.setItem('numberRecords', JSON.stringify(records));
+    }
+
+    function showSuccessPopup() {
+      var message = document.getElementById('success-message');
+      message.style.display = 'block';
+      setTimeout(function() {
+        var fadeEffect = setInterval(function() {
+          if (message.style.opacity > 0) {
+            message.style.opacity -= 0.1;
+          } else {
+            clearInterval(fadeEffect);
+            message.style.display = 'none';
+          }
+        }, 100);
+      }, 3000);
+    }
+
+    document.getElementById('numberForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value;
+      var minNumber = parseInt(document.getElementById('minNumber').value);
+      var maxNumber = parseInt(document.getElementById('maxNumber').value);
+
+      if (isNaN(minNumber) || isNaN(maxNumber)) {
+        alert('Please enter valid numbers.');
+        return;
+      }
+
+      var randomNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+      var currentDate = new Date();
+      var date = currentDate.toLocaleDateString();
+      var time = currentDate.toLocaleTimeString();
+
+      document.getElementById('result').textContent = 'Random Number for ' + username + ': ' + randomNumber;
+
+      // Save record and update table
+      saveRecord(username, minNumber, maxNumber, randomNumber, date, time);
+      loadRecords(username);
+
+      // Show success pop-up
+      showSuccessPopup();
+    });
+
+    // Load existing records on page load
+    var usernameFromURL = getUsernameFromURL();
+    var usernameInput = document.getElementById('username');
+    usernameInput.value = usernameFromURL;
+    loadRecords(usernameFromURL);
+
+    usernameInput.addEventListener('input', function() {
+      var newURL = window.location.href.replace(/\/[^\/]*$/, '/' + usernameInput.value);
+      window.history.replaceState({}, document.title, newURL);
+      loadRecords(usernameInput.value);
+    });
+  </script>
+</body>
+</html>
